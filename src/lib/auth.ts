@@ -8,6 +8,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      role: "USER" | "ADMIN";
     } & DefaultSession["user"];
   }
 }
@@ -46,14 +47,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.name ?? undefined,
           image: user.image ?? undefined,
+          role: user.role,
         };
       },
     }),
   ],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.role = (user as { role: "USER" | "ADMIN" }).role;
+      }
+      return token;
+    },
     async session({ session, token }) {
       if (token?.sub && session.user) {
         session.user.id = token.sub;
+        session.user.role = token.role as "USER" | "ADMIN";
       }
       return session;
     },
