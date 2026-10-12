@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatCurrency, formatDate, getStatusColor, formatOrderId } from "@/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -17,38 +18,6 @@ async function getOrders(userId: string) {
     },
     orderBy: { createdAt: "desc" },
   });
-}
-
-function formatCurrency(amount: number | string) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(Number(amount));
-}
-
-function formatDate(date: Date | string) {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "PENDING":
-      return "bg-yellow-100 text-yellow-800";
-    case "PROCESSING":
-      return "bg-blue-100 text-blue-800";
-    case "SHIPPED":
-      return "bg-purple-100 text-purple-800";
-    case "DELIVERED":
-      return "bg-green-100 text-green-800";
-    case "CANCELLED":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-zinc-100 text-zinc-800";
-  }
 }
 
 export default async function DashboardPage() {
@@ -100,7 +69,7 @@ export default async function DashboardPage() {
                 {orders.map((order) => (
                   <tr key={order.id} className="border-b border-zinc-100">
                     <td className="py-3 font-mono text-zinc-600">
-                      {order.id.slice(0, 8).toUpperCase()}
+                      {formatOrderId(order.id)}
                     </td>
                     <td className="py-3">{formatDate(order.createdAt)}</td>
                     <td className="py-3">

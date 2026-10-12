@@ -3,6 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import {
+	formatCurrency,
+	formatDate,
+	getStatusColor,
+	STATUS_OPTIONS,
+	formatOrderId,
+} from "@/lib/utils";
+import type { OrderStatus } from "@/lib/utils";
 
 interface Order {
   id: string;
@@ -25,50 +33,6 @@ interface Order {
       image: string | null;
     } | null;
   }>;
-}
-
-type OrderStatus = "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-
-const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: "PENDING", label: "Pending" },
-  { value: "PROCESSING", label: "Processing" },
-  { value: "SHIPPED", label: "Shipped" },
-  { value: "DELIVERED", label: "Delivered" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
-
-function formatCurrency(amount: string | number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(Number(amount));
-}
-
-function formatDate(date: string | Date) {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "PENDING":
-      return "bg-yellow-100 text-yellow-800";
-    case "PROCESSING":
-      return "bg-blue-100 text-blue-800";
-    case "SHIPPED":
-      return "bg-purple-100 text-purple-800";
-    case "DELIVERED":
-      return "bg-green-100 text-green-800";
-    case "CANCELLED":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-zinc-100 text-zinc-800";
-  }
 }
 
 export default function AdminOrderDetailPage({
@@ -163,7 +127,7 @@ export default function AdminOrderDetailPage({
             ← Back to Orders
           </Link>
           <h1 className="text-2xl font-bold">
-            Order #{order.id.slice(0, 8).toUpperCase()}
+            Order #{formatOrderId(order.id)}
           </h1>
         </div>
         <div className="flex items-center gap-4">

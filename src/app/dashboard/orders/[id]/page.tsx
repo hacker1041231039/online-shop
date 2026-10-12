@@ -1,12 +1,13 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatCurrency, formatDate, getStatusColor, formatOrderId } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 
 export const instant = false;
 
-async function getOrder(userId: string, orderId: string) {
+async function getOrder(orderId: string) {
   return prisma.order.findUnique({
     where: { id: orderId },
     include: {
@@ -17,40 +18,6 @@ async function getOrder(userId: string, orderId: string) {
       },
     },
   });
-}
-
-function formatCurrency(amount: string | number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(Number(amount));
-}
-
-function formatDate(date: Date | string) {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "PENDING":
-      return "bg-yellow-100 text-yellow-800";
-    case "PROCESSING":
-      return "bg-blue-100 text-blue-800";
-    case "SHIPPED":
-      return "bg-purple-100 text-purple-800";
-    case "DELIVERED":
-      return "bg-green-100 text-green-800";
-    case "CANCELLED":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-zinc-100 text-zinc-800";
-  }
 }
 
 export default async function OrderDetailPage({
@@ -64,14 +31,14 @@ export default async function OrderDetailPage({
   }
 
   const { id } = await params;
-  const order = await getOrder(session.user.id, id);
+  const order = await getOrder(id);
 
   if (!order) {
     notFound();
   }
 
   if (order.userId !== session.user.id) {
-    notFound();
+    redirect("/dashboard");
   }
 
   return (
@@ -84,7 +51,7 @@ export default async function OrderDetailPage({
           >
             ← Back to Dashboard
           </Link>
-          <h1 className="text-2xl font-bold">Order #{id.slice(0, 8).toUpperCase()}</h1>
+          <h1 className="text-2xl font-bold">Order #{formatOrderId(id)}</h1>
         </div>
         <span
           className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(
